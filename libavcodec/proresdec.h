@@ -36,6 +36,12 @@ typedef struct {
 } SliceContext;
 
 typedef struct {
+    int interlaced_count;
+    int progressive_count;
+
+} StatsContext;
+
+typedef struct {
     BlockDSPContext bdsp;
     ProresDSPContext prodsp;
     AVFrame *frame;
@@ -51,6 +57,7 @@ typedef struct {
     const uint8_t *scan;
     int first_field;
     int alpha_info;
+    StatsContext *stats;
     void (*unpack_alpha)(GetBitContext *gb, uint16_t *dst, int num_coeffs, const int num_bits);
 } ProresContext;
 
