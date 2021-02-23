@@ -195,6 +195,7 @@ static av_cold int decode_init(AVCodecContext *avctx)
         av_log(avctx, AV_LOG_ERROR, "Fail to set unpack_alpha for bits per raw sample %d\n", avctx->bits_per_raw_sample);
         return AVERROR_BUG;
     }
+    ctx->stats = (StatsContext*) av_mallocz(sizeof(StatsContext));
     return ret;
 }
 
@@ -243,8 +244,10 @@ static int decode_frame_header(ProresContext *ctx, const uint8_t *buf,
     ff_dlog(avctx, "frame type %d\n", ctx->frame_type);
 
     if (ctx->frame_type == 0) {
+        ctx->stats->progressive_count++;
         ctx->scan = ctx->progressive_scan; // permuted
     } else {
+        ctx->stats->interlaced_count++;
         ctx->scan = ctx->interlaced_scan; // permuted
         ctx->frame->interlaced_frame = 1;
         ctx->frame->top_field_first = ctx->frame_type == 1;
@@ -813,7 +816,10 @@ static av_cold int decode_close(AVCodecContext *avctx)
 {
     ProresContext *ctx = avctx->priv_data;
 
+    av_log(avctx, AV_LOG_DEBUG, "frame type stats: interlaced: %d, progressive: %d\n", ctx->stats->interlaced_count, ctx->stats->progressive_count);
+
     av_freep(&ctx->slices);
+    av_freep(&ctx->stats);
 
     return 0;
 }
